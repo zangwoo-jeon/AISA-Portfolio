@@ -15,7 +15,7 @@ public class Portfolio {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long portId;
-    @Column(name = "member_id", nullable = false, unique = true)
+    @Column(name = "member_id", nullable = false)
     private UUID memberId;
     @Column(name = "stock_id")
     private Long stockId;
