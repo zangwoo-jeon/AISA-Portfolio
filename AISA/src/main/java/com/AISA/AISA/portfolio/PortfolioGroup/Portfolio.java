@@ -1,4 +1,4 @@
-package com.AISA.AISA.portfolio;
+package com.AISA.AISA.portfolio.PortfolioGroup;
 
 import jakarta.persistence.*;
 import lombok.AccessLevel;

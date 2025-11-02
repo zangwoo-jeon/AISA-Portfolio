@@ -1,4 +1,4 @@
-package com.AISA.AISA.portfolio.dto;
+package com.AISA.AISA.portfolio.PortfolioGroup.dto;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;
