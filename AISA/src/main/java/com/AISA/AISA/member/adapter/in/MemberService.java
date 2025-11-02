@@ -21,6 +21,11 @@ public class MemberService {
             throw new BusinessException(MemberErrorCode.INVALID_CREDENTIALS_LENGTH);
         }
 
+        String password = request.getPassword();
+        if (!password.matches(".*[a-zA-Z].*") || !password.matches(".*\\d.*")) {
+            throw new BusinessException(MemberErrorCode.INVALID_PASSWORD_POLICY);
+        }
+
         Member newMember = Member.builder()
                 .userName(request.getUserName())
                 .displayName(request.getDisplayName())
