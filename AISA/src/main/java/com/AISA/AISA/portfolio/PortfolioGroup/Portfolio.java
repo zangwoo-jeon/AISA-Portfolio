@@ -13,16 +13,18 @@ import java.util.UUID;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Portfolio {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long portId;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID portId;
     @Column(name = "member_id", nullable = false)
     private UUID memberId;
     @Column(name = "stock_id")
     private Long stockId;
     @Column(name = "port_name", nullable = false)
     private String portName;
-    @Column(name= "stock_sequence")
+    @Column(name = "stock_sequence")
     private Long stockSequence;
+    @Column(name = "main_portfolio")
+    private boolean mainPort = false;
 
     public Portfolio(UUID memberId, String portName) {
         this.memberId = memberId;
@@ -43,4 +45,13 @@ public class Portfolio {
     public void changeName(String newPortName) {
         this.portName = newPortName;
     }
+
+    public void designateAsMain() {
+        this.mainPort = true;
+    }
+
+    public void unDesignateAsMain() {
+        this.mainPort = false;
+    }
+
 }
