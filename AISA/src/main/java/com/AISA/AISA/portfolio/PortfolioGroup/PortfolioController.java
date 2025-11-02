@@ -3,6 +3,7 @@ package com.AISA.AISA.portfolio.PortfolioGroup;
 
 import com.AISA.AISA.global.response.SuccessResponse;
 import com.AISA.AISA.portfolio.PortfolioGroup.dto.PortfolioCreateRequest;
+import com.AISA.AISA.portfolio.PortfolioGroup.dto.PortfolioNameUpdateRequest;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -40,12 +41,21 @@ public class PortfolioController {
     }
 
     @DeleteMapping("/remove/{memberId}/{portId}")
-    @Operation(summary = "포트폴리오 삭제", description = "포트폴리오를 삭제합니다.")
-    public ResponseEntity<SuccessResponse<Portfolio>> removePortfolio(
+    @Operation(summary = "포트폴리오 삭제", description = "특정 포트폴리오를 삭제합니다.")
+    public ResponseEntity<SuccessResponse<Void>> removePortfolio(
             @PathVariable UUID memberId, @PathVariable Long portId
     ) {
         portfolioService.deletePortfolio(memberId, portId);
         return ResponseEntity.ok(new SuccessResponse<>(true, "포트폴리오 삭제 성공", null));
+    }
+
+    @PutMapping("/changeName/{memberId}/{portId}")
+    @Operation(summary = "포트폴리오 이름 변경", description = "포트폴리오 이름을 변경합니다.")
+    public ResponseEntity<SuccessResponse<Void>> changePortfolioName(
+            @PathVariable UUID memberId, @PathVariable Long portId, @RequestBody PortfolioNameUpdateRequest request
+            ) {
+        portfolioService.updatePortfolioName(memberId, portId, request);
+        return ResponseEntity.ok(new SuccessResponse<>(true, "포트폴리오 이름 변경 성공", null));
     }
 
 }
