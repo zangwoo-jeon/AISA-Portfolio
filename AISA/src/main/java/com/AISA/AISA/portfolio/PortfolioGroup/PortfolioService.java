@@ -1,6 +1,7 @@
-package com.AISA.AISA.portfolio;
+package com.AISA.AISA.portfolio.PortfolioGroup;
 
-import com.AISA.AISA.portfolio.dto.PortfolioCreateRequest;
+import com.AISA.AISA.portfolio.PortfolioGroup.dto.PortfolioCreateRequest;
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -24,5 +25,14 @@ public class PortfolioService {
     public Portfolio createPortfolio(PortfolioCreateRequest request) {
         Portfolio newPortfolio = new Portfolio(request.getMemberId(), request.getPortName());
         return portfolioRepository.save(newPortfolio);
+    }
+
+    @Transactional
+    public void deletePortfolio(UUID memberId, Long portId) {
+        Portfolio portfolioToDelete = portfolioRepository.findByPortIdAndMemberId(portId, memberId)
+                .orElseThrow(() -> new EntityNotFoundException("해당 포트폴리오를 찾을 수 없습니다. portId: " + portId + ", memberId: " + memberId));
+
+        portfolioRepository.delete(portfolioToDelete);
+
     }
 }
