@@ -43,7 +43,7 @@ public class PortfolioController {
     @DeleteMapping("/remove/{memberId}/{portId}")
     @Operation(summary = "포트폴리오 삭제", description = "특정 포트폴리오를 삭제합니다.")
     public ResponseEntity<SuccessResponse<Void>> removePortfolio(
-            @PathVariable UUID memberId, @PathVariable Long portId
+            @PathVariable UUID memberId, @PathVariable UUID portId
     ) {
         portfolioService.deletePortfolio(memberId, portId);
         return ResponseEntity.ok(new SuccessResponse<>(true, "포트폴리오 삭제 성공", null));
@@ -52,10 +52,20 @@ public class PortfolioController {
     @PutMapping("/changeName/{memberId}/{portId}")
     @Operation(summary = "포트폴리오 이름 변경", description = "포트폴리오 이름을 변경합니다.")
     public ResponseEntity<SuccessResponse<Void>> changePortfolioName(
-            @PathVariable UUID memberId, @PathVariable Long portId, @RequestBody PortfolioNameUpdateRequest request
+            @PathVariable UUID memberId, @PathVariable UUID portId, @RequestBody PortfolioNameUpdateRequest request
             ) {
         portfolioService.updatePortfolioName(memberId, portId, request);
         return ResponseEntity.ok(new SuccessResponse<>(true, "포트폴리오 이름 변경 성공", null));
+    }
+
+    @PutMapping("/main/{memberId}/{portId}")
+    @Operation(summary = "메인 포트폴리오 변경", description = "회원 ID와 포트 ID로 메인 포트폴리오 그룹을 변경합니다.")
+    public ResponseEntity<SuccessResponse<Void>> changeMainPortfolio(
+            @PathVariable UUID memberId,
+            @PathVariable UUID portId
+    ) {
+        portfolioService.changeMainPortfolio(memberId, portId);
+        return ResponseEntity.ok(new SuccessResponse<>(true, "메인 포트폴리오 변경 성공", null));
     }
 
 }
