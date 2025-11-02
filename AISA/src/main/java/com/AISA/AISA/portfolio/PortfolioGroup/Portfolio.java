@@ -39,4 +39,8 @@ public class Portfolio {
         this.stockId = null;
         this.stockSequence = null;
     }
+
+    public void changeName(String newPortName) {
+        this.portName = newPortName;
+    }
 }

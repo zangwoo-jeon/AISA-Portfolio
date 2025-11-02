@@ -1,6 +1,7 @@
 package com.AISA.AISA.portfolio.PortfolioGroup;
 
 import com.AISA.AISA.portfolio.PortfolioGroup.dto.PortfolioCreateRequest;
+import com.AISA.AISA.portfolio.PortfolioGroup.dto.PortfolioNameUpdateRequest;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -34,5 +35,13 @@ public class PortfolioService {
 
         portfolioRepository.delete(portfolioToDelete);
 
+    }
+
+    @Transactional
+    public void updatePortfolioName(UUID memberId, Long portId, PortfolioNameUpdateRequest request) {
+        Portfolio portfolio = portfolioRepository.findByPortIdAndMemberId(portId, memberId)
+                .orElseThrow(() -> new EntityNotFoundException("해당 포트폴리오를 찾을 수 없습니다. portId: " + portId + ", memberId: " + memberId));
+
+        portfolio.changeName(request.getNewPortName());
     }
 }
