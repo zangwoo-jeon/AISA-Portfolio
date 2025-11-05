@@ -53,4 +53,11 @@ public class MemberService {
                 .map(MemberResponse::new)
                 .collect(Collectors.toList());
     }
+
+    @Transactional
+    public void deleteMemberById(UUID memberId) {
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new BusinessException(MemberErrorCode.MEMBER_NOT_FOUND));
+        memberRepository.delete(member);
+    }
 }
