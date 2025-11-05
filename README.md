@@ -13,3 +13,11 @@
 - CI/CD : Github Actions
 - Design : Figma
 - 외부 API : 키움 RestAPI
+
+<br />
+
+# 트러블 슈팅
+
+트러블 슈팅은 개인 블로그에 기록해둔다.
+
+[개인 블로그](https://zangwoo.tistory.com/category/%EA%B0%9C%EB%B0%9C%20%EC%9D%BC%EC%A7%80)
