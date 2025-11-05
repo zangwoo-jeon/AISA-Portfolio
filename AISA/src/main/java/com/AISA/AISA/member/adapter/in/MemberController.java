@@ -45,4 +45,13 @@ public class MemberController {
         MemberResponse member = memberService.findMemberById(memberId);
         return ResponseEntity.ok(new SuccessResponse<>(true, "회원 조회 성공", member));
     }
+
+    @DeleteMapping("/members/{memberId}")
+    @Operation(summary = "회원 삭제", description = "특정 회원을 삭제합니다.")
+    public ResponseEntity<SuccessResponse<Void>> deleteMember(
+            @PathVariable UUID memberId
+    ){
+        memberService.deleteMemberById(memberId);
+        return ResponseEntity.ok(new SuccessResponse<>(true, "회원 삭제 성공", null));
+    }
 }
