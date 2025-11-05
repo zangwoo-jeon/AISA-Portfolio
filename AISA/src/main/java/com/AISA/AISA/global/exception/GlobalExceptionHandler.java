@@ -26,13 +26,14 @@ public class GlobalExceptionHandler {
         log.error("DataIntegrityViolationException occurred: {}", e.getMessage(), e);
         String rootCauseMessage = e.getMostSpecificCause().getMessage();
 
+        // user_name이 중복이면 DUPLICATE_USERNAME, display_name이 중복이면 DUPLICATE_DISPLAY_NAME 처리
         if (rootCauseMessage.contains("uk_member_user_name")) {
             return ResponseErrorEntity.toResponseEntity(MemberErrorCode.DUPLICATE_USERNAME);
         } else if (rootCauseMessage.contains("uk_member_display_name")) {
             return ResponseErrorEntity.toResponseEntity(MemberErrorCode.DUPLICATE_DISPLAY_NAME);
         }
 
-        // 그 외의 데이터 무결성 오류는 일반적인 서버 오류로 처리합니다.
+        // 그 외의 데이터 무결성 오류는 일반적인 서버 오류로 처리
         return ResponseErrorEntity.toResponseEntity(CommonErrorCode.INTERNAL_SERVER_ERROR);
     }
 
