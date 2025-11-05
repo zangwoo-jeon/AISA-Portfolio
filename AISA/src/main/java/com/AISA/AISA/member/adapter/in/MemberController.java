@@ -2,6 +2,7 @@ package com.AISA.AISA.member.adapter.in;
 
 import com.AISA.AISA.global.response.SuccessResponse;
 import com.AISA.AISA.member.adapter.in.dto.MemberSignupRequest;
+import com.AISA.AISA.member.adapter.in.dto.PasswordChangeRequest;
 import com.AISA.AISA.member.adapter.out.dto.MemberResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -54,4 +55,16 @@ public class MemberController {
         memberService.deleteMemberById(memberId);
         return ResponseEntity.ok(new SuccessResponse<>(true, "회원 삭제 성공", null));
     }
+
+    @PatchMapping("/{memberId}/password")
+    @Operation(summary = "비밀번호 변경", description = "특정 회원의 비밀번호를 변경합니다.")
+    public ResponseEntity<SuccessResponse<Void>> changePassword(
+            @PathVariable UUID memberId,
+            @RequestBody PasswordChangeRequest request
+            ) {
+        memberService.changePassword(memberId, request);
+        return ResponseEntity.ok(new SuccessResponse<>(true, "비밀번호 변경 성공", null));
+    }
+
+
 }

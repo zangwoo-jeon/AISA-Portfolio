@@ -2,6 +2,7 @@ package com.AISA.AISA.member.adapter.in;
 
 import com.AISA.AISA.global.exception.BusinessException;
 import com.AISA.AISA.member.adapter.in.dto.MemberSignupRequest;
+import com.AISA.AISA.member.adapter.in.dto.PasswordChangeRequest;
 import com.AISA.AISA.member.adapter.in.exception.MemberErrorCode;
 import com.AISA.AISA.member.adapter.out.dto.MemberResponse;
 import lombok.RequiredArgsConstructor;
@@ -59,5 +60,32 @@ public class MemberService {
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new BusinessException(MemberErrorCode.MEMBER_NOT_FOUND));
         memberRepository.delete(member);
+    }
+
+    @Transactional
+    public void changePassword(UUID memberId, PasswordChangeRequest request) {
+
+        // 비밀번호 바꿀 회원 찾기
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new BusinessException(MemberErrorCode.MEMBER_NOT_FOUND));
+
+        // 현재 비밀번호가 일치하는지 확인
+        if (!passwordEncoder.matches(request.getCurrentPassword(), member.getPassword())) {
+            throw new BusinessException(MemberErrorCode.INVALID_CURRENT_PASSWORD);
+        }
+
+        String newPassword = request.getNewPassword();
+
+        // 현재 비밀번호가 8자 이상인지 확인
+        if (newPassword.length() < 8) {
+            throw new BusinessException(MemberErrorCode.INVALID_CREDENTIALS_LENGTH);
+        }
+        // 현재 비밀번호가 문자와 숫자를 모두 포함하는지 확인
+        if (!newPassword.matches(".*[a-zA-Z].*") || !newPassword.matches(".*\\d.*")) {
+            throw new BusinessException(MemberErrorCode.INVALID_PASSWORD_POLICY);
+        }
+
+        // 비밀번호 변경
+        member.changePassword(passwordEncoder.encode(newPassword));
     }
 }

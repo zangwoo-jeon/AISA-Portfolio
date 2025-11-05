@@ -36,4 +36,8 @@ public class Member {
         this.displayName = displayName;
         this.password = password;
     }
+
+    public void changePassword(String newPassword) {
+        this.password = newPassword;
+    }
 }
