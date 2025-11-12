@@ -12,7 +12,7 @@
 - DataBase : MySQL
 - CI/CD : Github Actions
 - Design : Figma
-- 외부 API : 키움 RestAPI
+- 외부 API : 한국투자증권 RestAPI
 
 <br />
 
