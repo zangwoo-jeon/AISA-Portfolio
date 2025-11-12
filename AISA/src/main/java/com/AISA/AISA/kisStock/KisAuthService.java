@@ -1,7 +1,9 @@
 package com.AISA.AISA.kisStock;
 
+import com.AISA.AISA.global.exception.BusinessException;
 import com.AISA.AISA.kisStock.dto.KisAuthRequest;
 import com.AISA.AISA.kisStock.dto.KisAuthResponse;
+import com.AISA.AISA.kisStock.exception.KisApiErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -63,7 +65,7 @@ public class KisAuthService {
             return this.accessToken;
         } else {
             log.error("KIS API 액세스 토큰 발급에 실패했습니다. 응답: {}", authResponse);
-            throw new RuntimeException("KIS API 액세스 토큰 발급에 실패했습니다.");
+            throw new BusinessException(KisApiErrorCode.TOKEN_ISSUANCE_FAILED);
         }
     }
 }
