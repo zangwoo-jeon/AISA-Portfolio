@@ -1,4 +1,4 @@
-package com.AISA.AISA.kisStock;
+package com.AISA.AISA.kisStock.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

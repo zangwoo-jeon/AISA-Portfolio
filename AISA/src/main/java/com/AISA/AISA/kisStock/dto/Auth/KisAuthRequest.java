@@ -1,4 +1,4 @@
-package com.AISA.AISA.kisStock.dto;
+package com.AISA.AISA.kisStock.dto.Auth;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Builder;

@@ -1,8 +1,8 @@
-package com.AISA.AISA.kisStock;
+package com.AISA.AISA.kisStock.kisService.Auth;
 
 import com.AISA.AISA.global.exception.BusinessException;
-import com.AISA.AISA.kisStock.dto.KisAuthRequest;
-import com.AISA.AISA.kisStock.dto.KisAuthResponse;
+import com.AISA.AISA.kisStock.dto.Auth.KisAuthRequest;
+import com.AISA.AISA.kisStock.dto.Auth.KisAuthResponse;
 import com.AISA.AISA.kisStock.exception.KisApiErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
