@@ -1,7 +1,6 @@
-package com.AISA.AISA.kisStock.dto;
+package com.AISA.AISA.kisStock.dto.StockPrice;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Data;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -10,9 +9,6 @@ import lombok.NoArgsConstructor;
 public class StockPriceResponse {
     @JsonProperty("stck_shrn_iscd") // 주식 종목 코드
     private String stockCode;
-
-    @JsonProperty("rprs_mrkt_kor_name")
-    private String marketName;
 
     @JsonProperty("stck_prpr") //주식 현재가
     private String stockPriceRaw;
