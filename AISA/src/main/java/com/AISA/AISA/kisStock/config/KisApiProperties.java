@@ -13,6 +13,8 @@ public class KisApiProperties {
     private String baseUrl;
     private String authUrl;
     private String priceUrl;
+    private String indexPriceUrl;
+    private String indexChartUrl;
     private String appkey;
     private String appsecret;
 }

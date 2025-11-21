@@ -1,4 +1,4 @@
-package com.AISA.AISA.kisStock.dto;
+package com.AISA.AISA.kisStock.dto.StockPrice;
 
 
 import com.fasterxml.jackson.annotation.JsonProperty;
