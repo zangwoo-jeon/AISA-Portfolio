@@ -1,4 +1,4 @@
-package com.AISA.AISA.kisStock.Entity;
+package com.AISA.AISA.kisStock.Entity.stock;
 
 import jakarta.persistence.*;
 import lombok.AccessLevel;

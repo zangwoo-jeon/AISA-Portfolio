@@ -1,6 +1,6 @@
-package com.AISA.AISA.kisStock.Repository;
+package com.AISA.AISA.kisStock.repository;
 
-import com.AISA.AISA.kisStock.Entity.Stock;
+import com.AISA.AISA.kisStock.Entity.stock.Stock;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;

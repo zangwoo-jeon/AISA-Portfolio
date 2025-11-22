@@ -1,10 +1,11 @@
 package com.AISA.AISA.kisStock.kisService;
 
-
-import com.AISA.AISA.kisStock.Entity.Stock;
-import com.AISA.AISA.kisStock.Repository.StockRepository;
+import com.AISA.AISA.kisStock.Entity.stock.Stock;
+import com.AISA.AISA.kisStock.repository.IndexDailyDataRepository;
+import com.AISA.AISA.kisStock.repository.StockRepository;
 import com.AISA.AISA.kisStock.config.KisApiProperties;
 import com.AISA.AISA.kisStock.dto.Index.*;
+import com.AISA.AISA.kisStock.Entity.Index.IndexDailyData;
 import com.AISA.AISA.kisStock.dto.StockPrice.KisPriceApiResponse;
 import com.AISA.AISA.kisStock.dto.StockPrice.StockPriceDto;
 import com.AISA.AISA.kisStock.dto.StockPrice.StockPriceResponse;
@@ -14,119 +15,227 @@ import com.AISA.AISA.global.exception.BusinessException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.reactive.function.client.WebClient;
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class KisStockService {
-    private final WebClient webClient;
-    private final KisAuthService kisAuthService;
-    private final KisApiProperties kisApiProperties;
-    private final StockRepository stockRepository;
+        private final WebClient webClient;
+        private final KisAuthService kisAuthService;
+        private final KisApiProperties kisApiProperties;
+        private final StockRepository stockRepository;
+        private final IndexDailyDataRepository indexDailyDataRepository;
 
-    public StockPriceDto getStockPrice(String stockCode) {
-        String accessToken = kisAuthService.getAccessToken();
+        public StockPriceDto getStockPrice(String stockCode) {
+                String accessToken = kisAuthService.getAccessToken();
 
-        Stock stock = stockRepository.findByStockCode(stockCode)
-                .orElseThrow(() -> new BusinessException(KisApiErrorCode.STOCK_NOT_FOUND));
+                Stock stock = stockRepository.findByStockCode(stockCode)
+                                .orElseThrow(() -> new BusinessException(KisApiErrorCode.STOCK_NOT_FOUND));
 
+                KisPriceApiResponse apiResponse = webClient.get()
+                                .uri(uriBuilder -> uriBuilder
+                                                .path(kisApiProperties.getPriceUrl())
+                                                .queryParam("fid_cond_mrkt_div_code", "J") // 조건 시장 분류 코드(J:KRX, NX:NXT,
+                                                                                           // UN:통합)
+                                                .queryParam("fid_input_iscd", stockCode) // 입력 종목코드(종목코드 (ex 005930
+                                                                                         // 삼성전자))
+                                                .build())
+                                .header("Authorization", accessToken) // 접근 토큰
+                                .header("appKey", kisApiProperties.getAppkey()) // 앱키
+                                .header("appSecret", kisApiProperties.getAppsecret()) // 앱시크릿키
+                                .header("tr_id", "FHKST01010100") // 거래ID
+                                .retrieve()
+                                .bodyToMono(KisPriceApiResponse.class)// 서버에서 온 JSON을 DTO 클래스(KisPriceApiResponse)로 매핑
+                                .onErrorMap(error -> {
+                                        log.error("{}의 주식 가격을 불러오는 데 실패했습니다. 에러: {}", stockCode, error.getMessage());
+                                        return new BusinessException(KisApiErrorCode.STOCK_PRICE_FETCH_FAILED);
+                                })
+                                .block(); // 동기식 객체로 변환
 
-        KisPriceApiResponse apiResponse = webClient.get()
-                .uri(uriBuilder -> uriBuilder
-                        .path(kisApiProperties.getPriceUrl())
-                        .queryParam("fid_cond_mrkt_div_code", "J") // 조건 시장 분류 코드(J:KRX, NX:NXT, UN:통합)
-                        .queryParam("fid_input_iscd", stockCode) // 입력 종목코드(종목코드 (ex 005930 삼성전자))
-                        .build())
-                .header("Authorization", accessToken) // 접근 토큰
-                .header("appKey", kisApiProperties.getAppkey()) //앱키
-                .header("appSecret", kisApiProperties.getAppsecret()) //앱시크릿키
-                .header("tr_id", "FHKST01010100") //거래ID
-                .retrieve()
-                .bodyToMono(KisPriceApiResponse.class)// 서버에서 온 JSON을 DTO 클래스(KisPriceApiResponse)로 매핑
-                .onErrorMap(error -> {
-                    log.error("{}의 주식 가격을 불러오는 데 실패했습니다. 에러: {}", stockCode, error.getMessage());
-                return new BusinessException(KisApiErrorCode.STOCK_PRICE_FETCH_FAILED);
-                })
-                .block(); //동기식 객체로 변환
+                StockPriceResponse raw = apiResponse.getOutput();
 
-        StockPriceResponse raw = apiResponse.getOutput();
-
-        return new StockPriceDto(
-                raw.getStockCode(),
-                stock.getStockName(),
-                stock.getMarketName(),
-                raw.getStockPriceRaw(),
-                raw.getPriceChangeRaw(),
-                raw.getChangeRateRaw(),
-                raw.getAccumulatedVolumeRaw(),
-                raw.getOpeningPriceRaw()
-        );
-    }
-    
-    public IndexChartResponseDto getIndexChart(String marketCode, String date, String dateType) {
-        // 1. 토큰 처리 (Bearer가 이미 붙어있는지 확인 필요)
-        String accessToken = kisAuthService.getAccessToken();
-        String authorizationHeader = accessToken.startsWith("Bearer ") ? accessToken : "Bearer " + accessToken;
-
-        String fidInputIscd = switch (marketCode.toUpperCase()) {
-            case "KOSPI" -> "0001";
-            case "KOSDAQ" -> "1001";
-            default -> throw new BusinessException(KisApiErrorCode.INVALID_MARKET_CODE);
-        };
-
-        KisIndexChartApiResponse apiResponse = webClient.get()
-                .uri(uriBuilder -> uriBuilder
-                        .path(kisApiProperties.getIndexChartUrl()) // url 확인: /uapi/domestic-stock/v1/quotations/inquire-index-daily-price
-                        .queryParam("FID_PERIOD_DIV_CODE", dateType) // D : 일별, W : 주별, M : 월별
-                        .queryParam("FID_COND_MRKT_DIV_CODE", "U")
-                        .queryParam("FID_INPUT_ISCD", fidInputIscd) // KOSPI
-                        .queryParam("FID_INPUT_DATE_1", date)
-                        .build())
-                .header("authorization", authorizationHeader) // [수정] 명확한 변수명 사용 및 Bearer 접두사 한번만 붙도록 보장
-                .header("appkey", kisApiProperties.getAppkey())
-                .header("appsecret", kisApiProperties.getAppsecret())
-                .header("tr_id", "FHPUP02120000")
-                .header("custtype", "P") // [중요] 고객 타입 추가 (P: 개인)
-                .retrieve()
-                .bodyToMono(KisIndexChartApiResponse.class)
-                .onErrorMap(error -> {
-                    // 로깅을 통해 실제 API가 뱉는 에러 메시지를 확인하는 것이 좋습니다.
-                    log.error("KIS API Error for {}: {}", marketCode, error.getMessage());
-                    return new BusinessException(KisApiErrorCode.INDEX_FETCH_FAILED);
-                })
-                .block();
-
-        // 응답 검증 강화 (output1이 null이거나 비어있으면 실패로 간주)
-        if (apiResponse == null || !"0".equals(apiResponse.getRtCd())) { // Check rtCd for success
-            log.error("API Response is valid but list is empty. Msg: {}",
-                    apiResponse != null ? apiResponse.getMsg1() : "null response");
-            throw new BusinessException(KisApiErrorCode.INDEX_FETCH_FAILED);
+                return new StockPriceDto(
+                                raw.getStockCode(),
+                                stock.getStockName(),
+                                stock.getMarketName(),
+                                raw.getStockPriceRaw(),
+                                raw.getPriceChangeRaw(),
+                                raw.getChangeRateRaw(),
+                                raw.getAccumulatedVolumeRaw(),
+                                raw.getOpeningPriceRaw());
         }
 
-        IndexChartInfoDto chartInfoDto = IndexChartInfoDto.builder()
-                .marketName(marketCode.toUpperCase())
-                .currentIndices(apiResponse.getTodayInfo().getCurrentIndices())
-                .priceChange(apiResponse.getTodayInfo().getPriceChange())
-                .changeRate(apiResponse.getTodayInfo().getChangeRate())
-                .build();
+        @Transactional
+        public void fetchAndSaveHistoricalData(String marketCode, String startDateStr) {
+                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd");
+                LocalDate targetStartDate = LocalDate.parse(startDateStr, formatter);
+                LocalDate currentDate = LocalDate.now();
 
-        List<IndexChartPriceDto> chartPriceList = apiResponse.getDateInfoList().stream()
-                .map(apiPrice -> IndexChartPriceDto.builder()
-                        .date(apiPrice.getDate())
-                        .price(apiPrice.getPrice())
-                        .openPrice(apiPrice.getOpenPrice())
-                        .highPrice(apiPrice.getHighPrice())
-                        .lowPrice(apiPrice.getLowPrice())
-                        .build())
-                .collect(java.util.stream.Collectors.toList());
+                log.info("Starting historical data fetch for {} from {} to {}", marketCode, currentDate,
+                                targetStartDate);
 
-        return IndexChartResponseDto.builder()
-                .info(chartInfoDto)
-                .priceList(chartPriceList)
-                .build();
+                while (currentDate.isAfter(targetStartDate)) {
+                        String currentDateStr = currentDate.format(formatter);
+                        log.info("Fetching data for date: {}", currentDateStr);
 
-    }
+                        try {
+                                // 1. API 호출 및 데이터 가져오기
+                                IndexChartResponseDto response = getIndexChart(marketCode, currentDateStr, "D");
+
+                                if (response.getPriceList() == null || response.getPriceList().isEmpty()) {
+                                        log.warn("No data returned for date: {}. Stopping.", currentDateStr);
+                                        break;
+                                }
+
+                                // 2. 데이터 저장
+                                for (IndexChartPriceDto priceDto : response.getPriceList()) {
+                                        LocalDate parsedDate = LocalDate.parse(priceDto.getDate(), formatter);
+
+                                        // 이미 저장된 데이터가 있으면 건너뛰기 (옵션)
+                                        if (indexDailyDataRepository.findByMarketNameAndDate(marketCode, parsedDate)
+                                                        .isPresent()) {
+                                                continue;
+                                        }
+
+                                        IndexDailyData entity = IndexDailyData.builder()
+                                                        .marketName(marketCode)
+                                                        .date(parsedDate)
+                                                        .closingPrice(new BigDecimal(priceDto.getPrice()))
+                                                        .openingPrice(new BigDecimal(priceDto.getOpenPrice()))
+                                                        .highPrice(new BigDecimal(priceDto.getHighPrice()))
+                                                        .lowPrice(new BigDecimal(priceDto.getLowPrice()))
+                                                        .priceChange(BigDecimal.ZERO)
+                                                        .changeRate(0.0)
+                                                        .volume(BigDecimal.ZERO)
+                                                        .build();
+
+                                        indexDailyDataRepository.save(entity);
+                                }
+
+                                // 3. 다음 호출을 위해 날짜 갱신 (가장 과거 날짜 - 1일)
+                                String oldestDateStr = response.getPriceList().get(response.getPriceList().size() - 1)
+                                                .getDate();
+                                LocalDate oldestDate = LocalDate.parse(oldestDateStr, formatter);
+
+                                if (!oldestDate.isBefore(currentDate)) {
+                                        // 무한 루프 방지: API가 계속 같은 날짜를 반환하거나 이상할 경우
+                                        log.warn("Oldest date {} is not before current date {}. Stopping to prevent infinite loop.",
+                                                        oldestDate, currentDate);
+                                        break;
+                                }
+
+                                currentDate = oldestDate.minusDays(1);
+
+                                // API 호출 제한 고려 (0.1초 대기)
+                                Thread.sleep(100);
+
+                        } catch (Exception e) {
+                                log.error("Error fetching historical data for {}: {}", currentDateStr, e.getMessage());
+                                break; // 에러 발생 시 중단
+                        }
+                }
+                log.info("Finished historical data fetch for {}", marketCode);
+        }
+
+        @Transactional
+        public void saveIndexDailyData(String marketCode, String date, String dateType) {
+                IndexChartResponseDto response = getIndexChart(marketCode, date, dateType);
+
+                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd");
+
+                for (IndexChartPriceDto priceDto : response.getPriceList()) {
+                        LocalDate parsedDate = LocalDate.parse(priceDto.getDate(), formatter);
+
+                        if (indexDailyDataRepository.findByMarketNameAndDate(marketCode, parsedDate).isPresent()) {
+                                continue;
+                        }
+
+                        IndexDailyData entity = IndexDailyData.builder()
+                                        .marketName(marketCode)
+                                        .date(parsedDate)
+                                        .closingPrice(new BigDecimal(priceDto.getPrice()))
+                                        .openingPrice(new BigDecimal(priceDto.getOpenPrice()))
+                                        .highPrice(new BigDecimal(priceDto.getHighPrice()))
+                                        .lowPrice(new BigDecimal(priceDto.getLowPrice()))
+                                        .priceChange(BigDecimal.ZERO) // DTO에 없으면 0 또는 계산
+                                        .changeRate(0.0) // DTO에 없으면 0 또는 계산
+                                        .volume(BigDecimal.ZERO) // DTO에 volume이 없다면 0 처리, 있다면 new
+                                                                 // BigDecimal(priceDto.getVolume())
+                                        .build();
+
+                        indexDailyDataRepository.save(entity);
+                }
+        }
+
+        public IndexChartResponseDto getIndexChart(String marketCode, String date, String dateType) {
+                // 1. 토큰 처리 (Bearer가 이미 붙어있는지 확인 필요)
+                String accessToken = kisAuthService.getAccessToken();
+                String authorizationHeader = accessToken.startsWith("Bearer ") ? accessToken : "Bearer " + accessToken;
+
+                String fidInputIscd = switch (marketCode.toUpperCase()) {
+                        case "KOSPI" -> "0001";
+                        case "KOSDAQ" -> "1001";
+                        default -> throw new BusinessException(KisApiErrorCode.INVALID_MARKET_CODE);
+                };
+
+                KisIndexChartApiResponse apiResponse = webClient.get()
+                                .uri(uriBuilder -> uriBuilder
+                                                .path(kisApiProperties.getIndexChartUrl()) // url 확인:
+                                                                                           // /uapi/domestic-stock/v1/quotations/inquire-index-daily-price
+                                                .queryParam("FID_PERIOD_DIV_CODE", dateType) // D : 일별, W : 주별, M : 월별
+                                                .queryParam("FID_COND_MRKT_DIV_CODE", "U")
+                                                .queryParam("FID_INPUT_ISCD", fidInputIscd) // KOSPI
+                                                .queryParam("FID_INPUT_DATE_1", date)
+                                                .build())
+                                .header("authorization", authorizationHeader) // [수정] 명확한 변수명 사용 및 Bearer 접두사 한번만 붙도록 보장
+                                .header("appkey", kisApiProperties.getAppkey())
+                                .header("appsecret", kisApiProperties.getAppsecret())
+                                .header("tr_id", "FHPUP02120000")
+                                .header("custtype", "P") // [중요] 고객 타입 추가 (P: 개인)
+                                .retrieve()
+                                .bodyToMono(KisIndexChartApiResponse.class)
+                                .onErrorMap(error -> {
+                                        // 로깅을 통해 실제 API가 뱉는 에러 메시지를 확인하는 것이 좋습니다.
+                                        log.error("KIS API Error for {}: {}", marketCode, error.getMessage());
+                                        return new BusinessException(KisApiErrorCode.INDEX_FETCH_FAILED);
+                                })
+                                .block();
+
+                // 응답 검증 강화 (output1이 null이거나 비어있으면 실패로 간주)
+                if (apiResponse == null || !"0".equals(apiResponse.getRtCd())) { // Check rtCd for success
+                        log.error("API Response is valid but list is empty. Msg: {}",
+                                        apiResponse != null ? apiResponse.getMsg1() : "null response");
+                        throw new BusinessException(KisApiErrorCode.INDEX_FETCH_FAILED);
+                }
+
+                IndexChartInfoDto chartInfoDto = IndexChartInfoDto.builder()
+                                .marketName(marketCode.toUpperCase())
+                                .currentIndices(apiResponse.getTodayInfo().getCurrentIndices())
+                                .priceChange(apiResponse.getTodayInfo().getPriceChange())
+                                .changeRate(apiResponse.getTodayInfo().getChangeRate())
+                                .build();
+
+                List<IndexChartPriceDto> chartPriceList = apiResponse.getDateInfoList().stream()
+                                .map(apiPrice -> IndexChartPriceDto.builder()
+                                                .date(apiPrice.getDate())
+                                                .price(apiPrice.getPrice())
+                                                .openPrice(apiPrice.getOpenPrice())
+                                                .highPrice(apiPrice.getHighPrice())
+                                                .lowPrice(apiPrice.getLowPrice())
+                                                .build())
+                                .collect(java.util.stream.Collectors.toList());
+
+                return IndexChartResponseDto.builder()
+                                .info(chartInfoDto)
+                                .priceList(chartPriceList)
+                                .build();
+
+        }
 }
