@@ -28,9 +28,10 @@ public class KisStockController {
     @Operation(summary = "지수 조회", description = "코스피(kospi) / 코스닥(kosdaq)의 날짜별 정보를 조회합니다.")
     public ResponseEntity<SuccessResponse<IndexChartResponseDto>> getIndexChart(
             @PathVariable String marketCode,
-            @RequestParam String date,
-            @RequestParam String dateType) {
-        IndexChartResponseDto chartData = kisStockService.getIndexChart(marketCode, date, dateType);
+            @RequestParam String startDate,
+            @RequestParam String endDate,
+            @RequestParam(defaultValue = "D") String dateType) {
+        IndexChartResponseDto chartData = kisStockService.getIndexChart(marketCode, startDate, endDate, dateType);
         return ResponseEntity.ok(new SuccessResponse<>(true, "기간별 지수 정보 조회 성공", chartData));
     }
 
@@ -39,7 +40,7 @@ public class KisStockController {
     public ResponseEntity<SuccessResponse<Void>> saveIndexDailyData(
             @PathVariable String marketCode,
             @RequestParam String date,
-            @RequestParam String dateType) {
+            @RequestParam(defaultValue = "D") String dateType) {
         kisStockService.saveIndexDailyData(marketCode, date, dateType);
         return ResponseEntity.ok(new SuccessResponse<>(true, "지수 데이터 저장 성공", null));
     }
