@@ -4,42 +4,38 @@ import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
 @Table(name = "portfolio")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@EntityListeners(AuditingEntityListener.class)
 public class Portfolio {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID portId;
+
     @Column(name = "member_id", nullable = false)
     private UUID memberId;
-    @Column(name = "stock_id")
-    private Long stockId;
+
     @Column(name = "port_name", nullable = false)
     private String portName;
-    @Column(name = "stock_sequence")
-    private Long stockSequence;
+
+    @CreatedDate
+    @Column(name = "created_at", updatable = false)
+    private LocalDateTime createdAt;
+
     @Column(name = "main_portfolio")
     private boolean mainPort = false;
 
     public Portfolio(UUID memberId, String portName) {
         this.memberId = memberId;
         this.portName = portName;
-    }
-
-    // 주식 정보 업데이트
-    public void updateStock(Long stockId, Long stockSequence) {
-        this.stockId = stockId;
-        this.stockSequence = stockSequence;
-    }
-
-    public void removeStock() {
-        this.stockId = null;
-        this.stockSequence = null;
     }
 
     public void changeName(String newPortName) {
@@ -53,5 +49,4 @@ public class Portfolio {
     public void unDesignateAsMain() {
         this.mainPort = false;
     }
-
 }
