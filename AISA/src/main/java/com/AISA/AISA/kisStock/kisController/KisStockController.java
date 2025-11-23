@@ -1,19 +1,20 @@
 package com.AISA.AISA.kisStock.kisController;
 
 import com.AISA.AISA.global.response.SuccessResponse;
+import com.AISA.AISA.kisStock.dto.Index.IndexChartInfoDto;
 import com.AISA.AISA.kisStock.dto.Index.IndexChartResponseDto;
 import com.AISA.AISA.kisStock.dto.StockPrice.StockPriceDto;
 import com.AISA.AISA.kisStock.kisService.KisStockService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDate;
-
 @RestController
 @RequestMapping("/api/stocks")
 @RequiredArgsConstructor
+@Tag(name = "주식 API", description = "주식과 지수 관련 API")
 public class KisStockController {
     private final KisStockService kisStockService;
 
@@ -22,6 +23,13 @@ public class KisStockController {
     public ResponseEntity<SuccessResponse<StockPriceDto>> getStockPrice(@PathVariable String stockCode) {
         StockPriceDto stockPriceDto = kisStockService.getStockPrice(stockCode);
         return ResponseEntity.ok(new SuccessResponse<>(true, "주식 현재가 조회 성공", stockPriceDto));
+    }
+
+    @GetMapping("/indices/{marketCode}/status")
+    @Operation(summary = "지수 현재 상태 조회", description = "코스피(kospi) / 코스닥(kosdaq)의 실시간 지수 정보를 조회합니다.")
+    public ResponseEntity<SuccessResponse<IndexChartInfoDto>> getIndexStatus(@PathVariable String marketCode) {
+        IndexChartInfoDto statusData = kisStockService.getIndexStatus(marketCode);
+        return ResponseEntity.ok(new SuccessResponse<>(true, "지수 현재 상태 조회 성공", statusData));
     }
 
     @GetMapping("/indices/{marketCode}/chart")
@@ -46,7 +54,7 @@ public class KisStockController {
     }
 
     @PostMapping("/indices/{marketCode}/init-history")
-    @Operation(summary = "초기 데이터 구축", description = "현재부터 특정 과거 시점까지의 데이터를 반복적으로 수집하여 DB에 저장합니다.")
+    @Operation(summary = "초기 지수 데이터 구축", description = "현재부터 특정 과거 시점까지의 데이터를 반복적으로 수집하여 DB에 저장합니다.")
     public ResponseEntity<SuccessResponse<Void>> initHistoricalData(
             @PathVariable String marketCode,
             @RequestParam String startDate) {

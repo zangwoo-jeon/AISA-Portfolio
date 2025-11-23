@@ -21,7 +21,9 @@ import org.springframework.web.reactive.function.client.WebClient;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -198,10 +200,10 @@ public class KisStockService {
                                                 return !dtoDate.isBefore(targetStartDate)
                                                                 && !dtoDate.isAfter(targetEndDate);
                                         })
-                                        .collect(java.util.stream.Collectors.toList());
+                                        .toList();
 
                         // 3. 부족한 과거 데이터 DB 조회
-                        List<IndexChartPriceDto> dbPriceList = new java.util.ArrayList<>();
+                        List<IndexChartPriceDto> dbPriceList = new ArrayList<>();
 
                         // API 데이터가 있고, 가장 오래된 날짜가 startDate보다 아직 미래라면 -> 그 사이 공백을 DB로 채움
                         if (!filteredApiList.isEmpty()) {
@@ -216,7 +218,7 @@ public class KisStockService {
 
                                         dbPriceList = pastDataList.stream()
                                                         .map(this::convertToDto)
-                                                        .collect(java.util.stream.Collectors.toList());
+                                                        .collect(Collectors.toList());
                                 }
                         } else {
                                 // API 데이터가 startDate 범위에 하나도 없으면 (API가 너무 미래 데이터만 줬거나 등)
@@ -238,12 +240,12 @@ public class KisStockService {
                                                                         apiOldestDate.minusDays(1));
                                         dbPriceList = pastDataList.stream()
                                                         .map(this::convertToDto)
-                                                        .collect(java.util.stream.Collectors.toList());
+                                                        .collect(Collectors.toList());
                                 }
                         }
 
                         // 4. 데이터 병합
-                        List<IndexChartPriceDto> mergedList = new java.util.ArrayList<>(filteredApiList);
+                        List<IndexChartPriceDto> mergedList = new ArrayList<>(filteredApiList);
                         mergedList.addAll(dbPriceList);
 
                         return IndexChartResponseDto.builder()
@@ -274,13 +276,21 @@ public class KisStockService {
 
                         List<IndexChartPriceDto> chartPriceList = entityList.stream()
                                         .map(this::convertToDto)
-                                        .collect(java.util.stream.Collectors.toList());
+                                        .collect(Collectors.toList());
 
                         return IndexChartResponseDto.builder()
                                         .info(chartInfoDto)
                                         .priceList(chartPriceList)
                                         .build();
                 }
+        }
+
+        public IndexChartInfoDto getIndexStatus(String marketCode) {
+                // 오늘 날짜 기준으로 API 호출하여 최신 상태 정보만 가져옴
+                String today = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+                // API 호출 시 dateType은 'D'로 고정
+                IndexChartResponseDto response = fetchIndexChartFromApi(marketCode, today, "D");
+                return response.getInfo();
         }
 
         private IndexChartPriceDto convertToDto(IndexDailyData entity) {
@@ -351,7 +361,7 @@ public class KisStockService {
                                                 .highPrice(apiPrice.getHighPrice())
                                                 .lowPrice(apiPrice.getLowPrice())
                                                 .build())
-                                .collect(java.util.stream.Collectors.toList());
+                                .collect(Collectors.toList());
 
                 return IndexChartResponseDto.builder()
                                 .info(chartInfoDto)
