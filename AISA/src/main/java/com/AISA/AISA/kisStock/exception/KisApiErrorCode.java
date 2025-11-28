@@ -13,7 +13,8 @@ public enum KisApiErrorCode implements ErrorCode {
     STOCK_PRICE_FETCH_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, false, "k500-2", "KIS API를 통한 주식 현재가 조회에 실패했습니다."),
     STOCK_NOT_FOUND(HttpStatus.NOT_FOUND, false, "S404-1", "주식 정보를 찾을 수 없습니다."),
     INVALID_MARKET_CODE(HttpStatus.BAD_REQUEST, false, "K400-1", "유효하지 않은 시장 코드입니다."),
-    INDEX_FETCH_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, false, "K500-3", "KIS API를 통한 지수 조회에 실패했습니다.");
+    INDEX_FETCH_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, false, "K500-3", "KIS API를 통한 지수 조회에 실패했습니다."),
+    DIVIDEND_FETCH_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, false, "K500-4", "KIS API를 통한 배당 조회에 실패했습니다.");
     private final HttpStatus httpStatus;
     private final boolean isSuccess;
     private final String code;

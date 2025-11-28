@@ -30,7 +30,7 @@ public class Stock {
         stock.marketName = marketName;
         return stock;
     }
-
+    
     public void updateInfo(String newName, String newMarketName) {
         this.stockName = newName;
         this.marketName = newMarketName;
