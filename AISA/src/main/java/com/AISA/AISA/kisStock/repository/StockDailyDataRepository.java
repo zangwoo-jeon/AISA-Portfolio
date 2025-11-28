@@ -9,11 +9,15 @@ import java.util.List;
 import java.util.Optional;
 
 public interface StockDailyDataRepository extends JpaRepository<StockDailyData, Long> {
-    Optional<StockDailyData> findByStockAndDate(Stock stock, LocalDate date);
+        Optional<StockDailyData> findByStockAndDate(Stock stock, LocalDate date);
 
-    List<StockDailyData> findAllByStock_StockCodeAndDateBetweenOrderByDateDesc(
-            String stockCode, LocalDate startDate, LocalDate endDate);
+        List<StockDailyData> findAllByStock_StockCodeAndDateBetweenOrderByDateDesc(
+                        String stockCode, LocalDate startDate, LocalDate endDate);
 
-    List<StockDailyData> findAllByStockInAndDateBetweenOrderByDateAsc(
-            List<Stock> stocks, LocalDate startDate, LocalDate endDate);
+        List<StockDailyData> findAllByStockInAndDateBetweenOrderByDateAsc(
+                        List<Stock> stocks, LocalDate startDate, LocalDate endDate);
+
+        Optional<StockDailyData> findFirstByStockAndDateLessThanEqualOrderByDateDesc(Stock stock, LocalDate date);
+
+        Optional<StockDailyData> findFirstByStockAndDateGreaterThanEqualOrderByDateAsc(Stock stock, LocalDate date);
 }
