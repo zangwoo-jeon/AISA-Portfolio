@@ -4,6 +4,7 @@ import com.AISA.AISA.global.exception.BusinessException;
 import com.AISA.AISA.kisStock.config.KisApiProperties;
 import com.AISA.AISA.kisStock.dto.Macro.KisOverseasDailyPriceDto;
 import com.AISA.AISA.kisStock.dto.Macro.KisOverseasDailyPriceResponseDto;
+import com.AISA.AISA.kisStock.enums.BondYield;
 import com.AISA.AISA.kisStock.enums.OverseasIndex;
 import com.AISA.AISA.kisStock.exception.KisApiErrorCode;
 import com.AISA.AISA.kisStock.kisService.Auth.KisAuthService;
@@ -39,6 +40,8 @@ public class KisMacroService {
 
     // StatCode for Overseas Index (New constant)
     private static final String STAT_CODE_OVERSEAS_INDEX = "KIS_OVERSEAS_INDEX";
+    // StatCode for Bond Yield (New constant)
+    private static final String STAT_CODE_BOND_YIELD = "KIS_BOND_YIELD";
 
     public List<MacroIndicatorDto> fetchExchangeRate(String currencyCode, String startDate, String endDate) {
         return fetchMacroData(STAT_CODE_EXCHANGE_RATE, ITEM_CODE_USD, "X", currencyCode, startDate, endDate);
@@ -46,6 +49,10 @@ public class KisMacroService {
 
     public List<MacroIndicatorDto> fetchOverseasIndex(OverseasIndex index, String startDate, String endDate) {
         return fetchMacroData(STAT_CODE_OVERSEAS_INDEX, index.getSymbol(), "N", index.getSymbol(), startDate, endDate);
+    }
+
+    public List<MacroIndicatorDto> fetchBondYield(BondYield bond, String startDate, String endDate) {
+        return fetchMacroData(STAT_CODE_BOND_YIELD, bond.getSymbol(), "I", bond.getSymbol(), startDate, endDate);
     }
 
     private List<MacroIndicatorDto> fetchMacroData(String statCode, String itemCode, String marketDivCode,
@@ -88,6 +95,12 @@ public class KisMacroService {
     @Transactional
     public void fetchAndSaveOverseasIndex(OverseasIndex index, String startDateStr, String endDateStr) {
         fetchAndSaveMacroData(STAT_CODE_OVERSEAS_INDEX, index.getSymbol(), "N", index.getSymbol(), startDateStr,
+                endDateStr);
+    }
+
+    @Transactional
+    public void fetchAndSaveBondYield(BondYield bond, String startDateStr, String endDateStr) {
+        fetchAndSaveMacroData(STAT_CODE_BOND_YIELD, bond.getSymbol(), "I", bond.getSymbol(), startDateStr,
                 endDateStr);
     }
 
