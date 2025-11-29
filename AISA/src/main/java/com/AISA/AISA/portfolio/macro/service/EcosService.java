@@ -28,26 +28,14 @@ public class EcosService {
     private final MacroDailyDataRepository macroDailyDataRepository;
 
     // 통계표코드 / 주기 / 항목코드
-    private static final String STAT_CODE_EXCHANGE_RATE = "731Y001"; // 주요국 통화의 대원화환율
-    private static final String ITEM_CODE_USD = "0000001"; // 원/미국달러
     private static final String STAT_CODE_M2 = "101Y004"; // M2(광의통화, 평잔, 원계열)
     private static final String ITEM_CODE_M2_TOTAL = "BBHA00"; // M2(평잔, 원계열)
-
-    @Transactional(readOnly = true)
-    public List<MacroIndicatorDto> fetchExchangeRate(String startDateStr, String endDateStr) {
-        return getMacroDataFromDb(STAT_CODE_EXCHANGE_RATE, ITEM_CODE_USD, startDateStr, endDateStr, "D");
-    }
 
     @Transactional(readOnly = true)
     public List<MacroIndicatorDto> fetchM2MoneySupply(String startDateStr, String endDateStr) {
         String startMonth = startDateStr.substring(0, 6);
         String endMonth = endDateStr.substring(0, 6);
         return getMacroDataFromDb(STAT_CODE_M2, ITEM_CODE_M2_TOTAL, startMonth, endMonth, "M");
-    }
-
-    @Transactional
-    public void saveExchangeRateData(String startDateStr, String endDateStr) {
-        fetchAndSaveFromApi(STAT_CODE_EXCHANGE_RATE, "D", ITEM_CODE_USD, startDateStr, endDateStr);
     }
 
     @Transactional
