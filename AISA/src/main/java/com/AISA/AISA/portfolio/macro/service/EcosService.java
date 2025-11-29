@@ -31,6 +31,9 @@ public class EcosService {
     private static final String STAT_CODE_M2 = "101Y004"; // M2(광의통화, 평잔, 원계열)
     private static final String ITEM_CODE_M2_TOTAL = "BBHA00"; // M2(평잔, 원계열)
 
+    private static final String STAT_CODE_BASE_RATE = "722Y001"; // 한국은행 기준금리 및 여수신금리
+    private static final String ITEM_CODE_BASE_RATE = "0101000"; // 한국은행 기준금리
+
     @Transactional(readOnly = true)
     public List<MacroIndicatorDto> fetchM2MoneySupply(String startDateStr, String endDateStr) {
         String startMonth = startDateStr.substring(0, 6);
@@ -38,11 +41,25 @@ public class EcosService {
         return getMacroDataFromDb(STAT_CODE_M2, ITEM_CODE_M2_TOTAL, startMonth, endMonth, "M");
     }
 
+    @Transactional(readOnly = true)
+    public List<MacroIndicatorDto> fetchBaseRate(String startDateStr, String endDateStr) {
+        String startMonth = startDateStr.substring(0, 6);
+        String endMonth = endDateStr.substring(0, 6);
+        return getMacroDataFromDb(STAT_CODE_BASE_RATE, ITEM_CODE_BASE_RATE, startMonth, endMonth, "M");
+    }
+
     @Transactional
     public void saveM2Data(String startDateStr, String endDateStr) {
         String startMonth = startDateStr.substring(0, 6);
         String endMonth = endDateStr.substring(0, 6);
         fetchAndSaveFromApi(STAT_CODE_M2, "M", ITEM_CODE_M2_TOTAL, startMonth, endMonth);
+    }
+
+    @Transactional
+    public void saveBaseRate(String startDateStr, String endDateStr) {
+        String startMonth = startDateStr.substring(0, 6);
+        String endMonth = endDateStr.substring(0, 6);
+        fetchAndSaveFromApi(STAT_CODE_BASE_RATE, "M", ITEM_CODE_BASE_RATE, startMonth, endMonth);
     }
 
     private List<MacroIndicatorDto> getMacroDataFromDb(String statCode, String itemCode, String reqStartDateStr,
