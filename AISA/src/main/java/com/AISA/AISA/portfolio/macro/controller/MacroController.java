@@ -66,6 +66,24 @@ public class MacroController {
         return ResponseEntity.ok(new SuccessResponse<>(true, "M2 데이터 저장 성공", null));
     }
 
+    @GetMapping("/base-rate")
+    @Operation(summary = "기준금리 조회", description = "DB에 저장된 한국은행 기준금리를 조회합니다. (데이터가 없으면 POST /init을 호출하세요)")
+    public ResponseEntity<SuccessResponse<List<MacroIndicatorDto>>> getBaseRate(
+            @RequestParam String startDate,
+            @RequestParam String endDate) {
+        List<MacroIndicatorDto> data = ecosService.fetchBaseRate(startDate, endDate);
+        return ResponseEntity.ok(new SuccessResponse<>(true, "기준금리 조회 성공", data));
+    }
+
+    @PostMapping("/base-rate/init")
+    @Operation(summary = "기준금리 데이터 초기화/업데이트", description = "한국은행 ECOS API에서 기준금리 데이터를 가져와 DB에 저장합니다.")
+    public ResponseEntity<SuccessResponse<Void>> initBaseRate(
+            @RequestParam String startDate,
+            @RequestParam String endDate) {
+        ecosService.saveBaseRate(startDate, endDate);
+        return ResponseEntity.ok(new SuccessResponse<>(true, "기준금리 데이터 저장 성공", null));
+    }
+
     @GetMapping("/kospi-usd-ratio")
     @Operation(summary = "달러 환산 코스피 지수 조회", description = "코스피 지수를 원/달러 환율로 나누어 달러 기준 가치를 계산합니다. (KOSPI / (환율 / 1000))")
     public ResponseEntity<SuccessResponse<List<MacroIndicatorDto>>> getKospiUsdRatio(
