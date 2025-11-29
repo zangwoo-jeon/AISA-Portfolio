@@ -1,6 +1,7 @@
 package com.AISA.AISA.portfolio.macro.controller;
 
 import com.AISA.AISA.global.response.SuccessResponse;
+import com.AISA.AISA.kisStock.enums.BondYield;
 import com.AISA.AISA.kisStock.enums.OverseasIndex;
 import com.AISA.AISA.kisStock.kisService.KisMacroService;
 import com.AISA.AISA.portfolio.macro.dto.MacroIndicatorDto;
@@ -113,5 +114,27 @@ public class MacroController {
         OverseasIndex index = OverseasIndex.valueOf(indexName.toUpperCase());
         kisMacroService.fetchAndSaveOverseasIndex(index, startDate, endDate);
         return ResponseEntity.ok(new SuccessResponse<>(true, index.getDescription() + " 데이터 저장 성공", null));
+    }
+
+    @GetMapping("/bond/{bondName}")
+    @Operation(summary = "채권 금리 조회", description = "주요 국채 금리(한국, 미국)를 조회합니다.")
+    public ResponseEntity<SuccessResponse<List<MacroIndicatorDto>>> getBondYield(
+            @PathVariable String bondName,
+            @RequestParam String startDate,
+            @RequestParam String endDate) {
+        BondYield bond = BondYield.valueOf(bondName.toUpperCase());
+        List<MacroIndicatorDto> data = kisMacroService.fetchBondYield(bond, startDate, endDate);
+        return ResponseEntity.ok(new SuccessResponse<>(true, bond.getDescription() + " 조회 성공", data));
+    }
+
+    @PostMapping("/bond/init")
+    @Operation(summary = "채권 금리 데이터 초기화/업데이트", description = "채권 금리 데이터를 KIS API에서 가져와 DB에 저장합니다.")
+    public ResponseEntity<SuccessResponse<Void>> initBondYield(
+            @RequestParam String bondName,
+            @RequestParam String startDate,
+            @RequestParam String endDate) {
+        BondYield bond = BondYield.valueOf(bondName.toUpperCase());
+        kisMacroService.fetchAndSaveBondYield(bond, startDate, endDate);
+        return ResponseEntity.ok(new SuccessResponse<>(true, bond.getDescription() + " 데이터 저장 성공", null));
     }
 }
